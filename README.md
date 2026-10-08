@@ -1,43 +1,37 @@
-# Word Sprint 500 — GitHub Pages
+# AI 수학 오답노트 — GitHub Pages + Cloudflare Worker
 
-이 폴더의 파일은 GitHub Pages의 사이트 루트에 그대로 올릴 수 있습니다.
+## 기능
+- 휴대폰 카메라/사진 여러 장 업로드
+- AI가 문제 영역, 학생 답안, 채점 표시, 오답 여부 분석
+- 틀린 문제만 추출
+- 학생 필기와 채점 표시를 제거한 깨끗한 문제 이미지 생성 시도
+- 문제/학생답/정답/틀린 이유/풀이를 오답노트로 정리
+- 브라우저 인쇄 기능으로 PDF 저장
+- PWA 설치 및 기본 오프라인 캐시
 
-## 1. GitHub 저장소 만들기
-GitHub에서 새 Repository를 만듭니다.
-예: `word-sprint-500`
+## 1. GitHub Pages
+저장소에 `index.html`, `manifest.json`, `sw.js`, `icons/`를 그대로 올립니다.
+GitHub → Settings → Pages → Deploy from branch → main / root 를 선택합니다.
 
-## 2. 파일 업로드
-이 폴더 안의 파일과 폴더를 Repository의 최상위(루트)에 업로드합니다.
+## 2. AI 서버
+`worker/`는 Cloudflare Worker용입니다.
 
-구조:
+### 설치
+```bash
+npm install -g wrangler
+cd worker
+wrangler login
+wrangler secret put OPENAI_API_KEY
+wrangler deploy
 ```
-word-sprint-500/
-├── index.html
-├── manifest.webmanifest
-├── sw.js
-├── README.md
-└── icons/
-    ├── icon-192.png
-    └── icon-512.png
-```
+배포 후 나온 `https://....workers.dev` 주소를 앱의 **AI 서버 설정**에 입력하고 저장합니다.
 
-## 3. GitHub Pages 켜기
-Repository → Settings → Pages로 이동합니다.
+### 주의
+- OpenAI API 키를 `index.html`이나 GitHub 저장소에 절대 넣지 마세요.
+- API 사용료가 발생할 수 있습니다.
+- 이미지 편집 결과는 원본 인쇄물을 최대한 보존하도록 요청하지만, AI 이미지 편집 특성상 모든 글자/수식의 100% 동일 보존을 보장할 수 없습니다. 중요한 자료는 원본과 결과를 함께 확인하세요.
 
-- Source: `Deploy from a branch`
-- Branch: `main`
-- Folder: `/ (root)`
-- Save
+## 3. 동작 구조
+GitHub Pages PWA → Cloudflare Worker → OpenAI Responses API(문제/오답 분석) → 이미지 편집 API(필기/채점 표시 제거) → JSON + 이미지 → PWA 오답노트
 
-잠시 기다리면 GitHub Pages 주소가 생성됩니다.
-
-## 4. 아이폰에서 설치
-생성된 Pages 주소를 Safari로 엽니다.
-공유 버튼 → `홈 화면에 추가` → 추가
-
-이제 Word Sprint 500이 홈 화면 앱처럼 실행됩니다.
-
-## 주의
-- PWA 설치는 HTTPS에서 가능합니다. GitHub Pages는 HTTPS를 제공합니다.
-- ZIP 파일 자체를 아이폰에 설치하는 것이 아닙니다.
-- Repository에는 ZIP 내부의 파일을 압축 해제한 상태로 올려야 합니다.
+OpenAI의 최신 통합에는 Responses API 사용을 권장하며, Assistants API는 2026-08-26 종료되었습니다.
