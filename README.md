@@ -1,37 +1,26 @@
-# AI 수학 오답노트 — GitHub Pages + Cloudflare Worker
+# 수학 오답노트 PWA
 
-## 기능
-- 휴대폰 카메라/사진 여러 장 업로드
-- AI가 문제 영역, 학생 답안, 채점 표시, 오답 여부 분석
-- 틀린 문제만 추출
-- 학생 필기와 채점 표시를 제거한 깨끗한 문제 이미지 생성 시도
-- 문제/학생답/정답/틀린 이유/풀이를 오답노트로 정리
-- 브라우저 인쇄 기능으로 PDF 저장
-- PWA 설치 및 기본 오프라인 캐시
+휴대폰/태블릿/PC 브라우저에서 실행하는 GitHub Pages용 정적 PWA입니다.
 
-## 1. GitHub Pages
-저장소에 `index.html`, `manifest.json`, `sw.js`, `icons/`를 그대로 올립니다.
-GitHub → Settings → Pages → Deploy from branch → main / root 를 선택합니다.
+## 포함 기능
+- 휴대폰 카메라 또는 사진 파일 여러 장 등록
+- 사진 페이지 이동
+- 문제 영역을 드래그해 잘라 목록에 추가
+- 빨강/분홍/파랑 계열 채점 흔적 자동 감지 및 주변 픽셀 기반 보정
+- 회색 연필로 추정되는 픽셀 자동 보정(보수적 휴리스틱)
+- 수동 흰색 지우개 및 되돌리기
+- 문제별 오답 포함/제외, 이름 변경, 삭제
+- 오답 문제 A4 인쇄/PDF 저장
+- 작업 목록 JSON 백업
+- 서비스 워커 기반 기본 오프라인 캐시
 
-## 2. AI 서버
-`worker/`는 Cloudflare Worker용입니다.
+## 배포
+1. ZIP 압축을 풉니다.
+2. `math-wrongbook-pwa` 폴더 안의 `index.html`, `manifest.json`, `sw.js`를 GitHub 저장소 루트에 업로드합니다.
+3. GitHub 저장소의 **Settings → Pages**에서 `Deploy from a branch`, `main`, `/(root)`를 선택하고 저장합니다.
+4. GitHub Pages 주소를 엽니다. iPhone에서는 공유 메뉴의 '홈 화면에 추가'를 이용할 수 있습니다.
 
-### 설치
-```bash
-npm install -g wrangler
-cd worker
-wrangler login
-wrangler secret put OPENAI_API_KEY
-wrangler deploy
-```
-배포 후 나온 `https://....workers.dev` 주소를 앱의 **AI 서버 설정**에 입력하고 저장합니다.
+## 중요한 한계
+이 앱은 별도 서버나 API 키 없이 사진을 브라우저 내부에서 처리합니다. 색상 흔적 제거와 회색 연필 추정 제거는 픽셀 기반 휴리스틱이며, 생성형 AI 인페인팅/OCR이 아닙니다. 필기와 인쇄 글자가 겹치거나 색상·밝기가 비슷하면 잘못 지워질 수 있습니다. 자동 보정 전후를 확인하고 필요하면 `되돌리기`를 사용하세요. 문제의 정답/오답 의미를 AI가 판정하는 기능은 포함하지 않으며, 오답은 사용자가 확인해 표시합니다.
 
-### 주의
-- OpenAI API 키를 `index.html`이나 GitHub 저장소에 절대 넣지 마세요.
-- API 사용료가 발생할 수 있습니다.
-- 이미지 편집 결과는 원본 인쇄물을 최대한 보존하도록 요청하지만, AI 이미지 편집 특성상 모든 글자/수식의 100% 동일 보존을 보장할 수 없습니다. 중요한 자료는 원본과 결과를 함께 확인하세요.
-
-## 3. 동작 구조
-GitHub Pages PWA → Cloudflare Worker → OpenAI Responses API(문제/오답 분석) → 이미지 편집 API(필기/채점 표시 제거) → JSON + 이미지 → PWA 오답노트
-
-OpenAI의 최신 통합에는 Responses API 사용을 권장하며, Assistants API는 2026-08-26 종료되었습니다.
+사진과 작업 데이터는 기본적으로 서버로 전송되지 않습니다. JSON 백업은 사용자가 직접 다운로드해야 합니다.
